@@ -1,0 +1,30 @@
+from django.shortcuts import render
+from django.http import HttpResponse, HttpResponseNotFound
+from models import Pages
+from django.views.decorators.csrf import csrf_exempt
+
+# Create your views here.
+
+
+@csrf_exempt
+def dbMngt(request, resource):
+	
+    if request.user.is_authenticated():
+        logged = "Logged in as. " + request.user.username \
+                    + " <a href='/admin/logout/'>Log out</a>"
+    else:
+        logged = "Not logged in.  \
+                 <a href='/admin/login/?next=/admin/'>Log in</a>"
+
+    if request.method == "GET":
+        try:
+            page = Pages.objects.get(name = resource)
+            return HttpResponse(page.page)
+        except Pages.DoesNotExist:
+            return HttpResponseNotFound(logged + "<br/>" + "Page " + resource + 
+                                        " is not available")
+    elif request.method == "PUT":
+            newPage = Pages(name = resource, page = request.body)
+            newPage.save()
+            return HttpResponse(logged + "<br/>" + "Page " + resource + 
+                                " successfully saved")
